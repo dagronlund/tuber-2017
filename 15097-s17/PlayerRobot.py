@@ -40,6 +40,8 @@ class player_robot(Robot):
         self.turn = 0
 
         self.history = [((0, 0), 0)] * 10
+
+        self.home_path = []
         # print(self.history)
 
         # for i in range(0, SetupConstants.BOARD_DIM)
@@ -85,8 +87,6 @@ class player_robot(Robot):
     # README - Get_Move                                                                       #
     ###########################################################################################
     def get_move(self, view):
-        # print(self.x, self.y)
-
         self.turn += 1
 
         if self.preferred_dir is None:
@@ -119,7 +119,7 @@ class player_robot(Robot):
 
         if (995 - self.turn <= len(self.toHome)) or (self.storage_remaining() == 0):
             self.goinghome = True
-            print(self.toHome)
+            # print(self.toHome)
 
             # print("Going Home", self.storage_remaining(), self.held_value())
 
@@ -164,7 +164,23 @@ class player_robot(Robot):
         else:
             # Use the first coordinate on the path as the destination , and action to move
             actionToTake = self.UpdateTargetPath()
+  
+
+        
+        # clean home path
+        next_loc = (0, 0) + self.xy_from_dir(actionToTake)
+        if len(self.home_path) > 0:
+            next_loc = self.home_path[-1] + self.xy_from_dir(actionToTake)
+
         self.toHome.append(actionToTake)
+        self.home_path.append(next_loc)
+
+        for i in range(0, len(self.home_path)):
+            if self.home_path[i] == next_loc:
+                del self.home_path[i+1:-1]
+                del self.toHome[i+1:-1]
+                break
+
         # markerDrop = random.choice([Actions.DROP_RED,Actions.DROP_YELLOW,Actions.DROP_GREEN,Actions.DROP_BLUE,Actions.DROP_ORANGE])
         markerDrop = Actions.DROP_NONE
         # if not self.view_resources_seen(view):
