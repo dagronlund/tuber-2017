@@ -35,6 +35,10 @@ class player_robot(Robot):
         self.targetPath = None
         self.targetDest = (0,0)
         self.preferred_dir = None
+        self.x = 0
+        self.y = 0
+
+        # for i in range(0, SetupConstants.BOARD_DIM)
 
         # self.angle = random.random() * pi / 2.0
         # self.x_prob = ((pi / 2.0) - angle) / (pi / 2.0)
@@ -77,6 +81,7 @@ class player_robot(Robot):
     # README - Get_Move                                                                       #
     ###########################################################################################
     def get_move(self, view):
+        # print(self.x, self.y)
 
         if self.preferred_dir is None:
             self.preferred_dir = random.choice([Actions.MOVE_E,Actions.MOVE_N,
@@ -98,11 +103,15 @@ class player_robot(Robot):
             # You are t home
             if(self.toHome == []):
                 self.goinghome = False
+                print("Home", self.x, self.y)
                 return (Actions.DROPOFF, Actions.DROP_NONE)
             # Trace your steps back home
             prevAction = self.toHome.pop()
             revAction = self.OppositeDir(prevAction)
             assert(isinstance(revAction, int))
+            dx, dy = self.xy_from_dir(revAction)
+            self.x += dx
+            self.y += dy
             return (revAction, Actions.DROP_NONE)
 
         viewLen = len(view)
@@ -114,7 +123,7 @@ class player_robot(Robot):
         self.ViewScan(view)
         # self.view_no_resources_seen(view)
 
-        # If 
+
         
         # If you can't find any resources...go in a random direction!
         actionToTake = None
@@ -134,6 +143,9 @@ class player_robot(Robot):
         # if not self.view_resources_seen(view):
         #     markerDrop = Actions.DROP_RED
         assert(isinstance(actionToTake, int))
+        dx, dy = self.xy_from_dir(actionToTake)
+        self.x += dx
+        self.y += dy
         return (actionToTake, markerDrop)
 
     # Returns opposite direction
@@ -269,3 +281,22 @@ class player_robot(Robot):
 
         return actionToTake
 
+    def xy_from_dir(self, actionToTake):
+        if(actionToTake == Actions.MOVE_S):
+            return (1, 0)
+        elif(actionToTake == Actions.MOVE_SE):
+            return (1, 1)
+        elif(actionToTake == Actions.MOVE_E):
+            return (0, 1)
+        elif(actionToTake == Actions.MOVE_NE):
+            return (-1, 1)
+        elif(actionToTake == Actions.MOVE_N):
+            return (-1, 0)
+        elif(actionToTake == Actions.MOVE_NW):
+            return (-1,-1)
+        elif(actionToTake == Actions.MOVE_W):
+            return (0, -1) 
+        elif(actionToTake == Actions.MOVE_SW):
+            return (1, -1)       
+        else:
+            return (0, 0)
