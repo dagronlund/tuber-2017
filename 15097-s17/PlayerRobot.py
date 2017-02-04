@@ -27,11 +27,15 @@ class player_robot(Robot):
         #                                            #
         # README - My_Robot                          #
         ##############################################
-        self.toHome = []             
+        self.toHome = []
         self.numturns = 0            
         self.goinghome = False;      
         self.targetPath = None
         self.targetDest = (0,0)
+        self.preferred_dir = random.choice([Actions.MOVE_E,Actions.MOVE_N,
+                                          Actions.MOVE_S,Actions.MOVE_W,
+                                          Actions.MOVE_NW,Actions.MOVE_NE,
+                                          Actions.MOVE_SW,Actions.MOVE_SE])
 
     # A couple of helper functions (Implemented at the bottom)
     def OppositeDir(self, direction):
@@ -93,8 +97,8 @@ class player_robot(Robot):
             # Use the first coordinate on the path as the destination , and action to move
             actionToTake = self.UpdateTargetPath()
         self.toHome.append(actionToTake)
-        #markerDrop = random.choice([Actions.DROP_RED,Actions.DROP_YELLOW,Actions.DROP_GREEN,Actions.DROP_BLUE,Actions.DROP_ORANGE])
-        markerDrop = Actions.DROP_NONE
+        # markerDrop = random.choice([Actions.DROP_RED,Actions.DROP_YELLOW,Actions.DROP_GREEN,Actions.DROP_BLUE,Actions.DROP_ORANGE])
+        markerDrop = Actions.DROP_RED
         assert(isinstance(actionToTake, int))
         return (actionToTake, markerDrop)
 
@@ -155,13 +159,17 @@ class player_robot(Robot):
 
         return
 
+    def view_no_resources_seen(self, view):
+        return
+
     # Picks a random move based on the view - don't crash into mountains!
     # REQUIRES: view (see call location)
     def FindRandomPath(self, view):
         viewLen = len(view)
 
         while(True):
-            actionToTake = random.choice([Actions.MOVE_E,Actions.MOVE_N,
+            actionToTake = random.choice([self.preferred_dir, self.preferred_dir, self.preferred_dir, self.preferred_dir,
+                                          Actions.MOVE_E,Actions.MOVE_N,
                                           Actions.MOVE_S,Actions.MOVE_W,
                                           Actions.MOVE_NW,Actions.MOVE_NE,
                                           Actions.MOVE_SW,Actions.MOVE_SE])
