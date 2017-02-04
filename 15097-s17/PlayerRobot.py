@@ -37,6 +37,10 @@ class player_robot(Robot):
         self.preferred_dir = None
         self.x = 0
         self.y = 0
+        self.turn = 0
+
+        self.history = [((0, 0), 0)] * 10
+        # print(self.history)
 
         # for i in range(0, SetupConstants.BOARD_DIM)
 
@@ -83,19 +87,40 @@ class player_robot(Robot):
     def get_move(self, view):
         # print(self.x, self.y)
 
+        self.turn += 1
+
         if self.preferred_dir is None:
             self.preferred_dir = random.choice([Actions.MOVE_E,Actions.MOVE_N,
                           Actions.MOVE_S,Actions.MOVE_W,
                           Actions.MOVE_NW,Actions.MOVE_NE,
                           Actions.MOVE_SW,Actions.MOVE_SE])
             # print('Preferred dir', self.preferred_dir)
-            
+        
+        recalculate = False
+        dist = abs(self.x - self.history[0][0][0]) + abs(self.y - self.history[0][0][1])
+        if dist < 5:
+            recalculate = True
+
+        for chapter in self.history:
+            if chapter[1] == 1:
+                recalculate = False
+
+        if recalculate:
+            #print "Recalculate"
+            self.preferred_dir = random.choice([Actions.MOVE_E,Actions.MOVE_N,
+                          Actions.MOVE_S,Actions.MOVE_W,
+                          Actions.MOVE_NW,Actions.MOVE_NE,
+                          Actions.MOVE_SW,Actions.MOVE_SE])
+
         # print(self.held_value())
         # Returns home if you have one resource
         # if (self.held_value() > 0):
         #     self.goinghome = True
-        if(self.storage_remaining() == 0):
+
+        if (995 - self.turn <= len(self.toHome)) or (self.storage_remaining() == 0):
             self.goinghome = True
+            print(self.toHome)
+
             # print("Going Home", self.storage_remaining(), self.held_value())
 
         # How to navigate back home
@@ -103,7 +128,7 @@ class player_robot(Robot):
             # You are t home
             if(self.toHome == []):
                 self.goinghome = False
-                print("Home", self.x, self.y)
+                # print("Home", self.x, self.y)
                 return (Actions.DROPOFF, Actions.DROP_NONE)
             # Trace your steps back home
             prevAction = self.toHome.pop()
@@ -121,7 +146,7 @@ class player_robot(Robot):
         # Search for resources
         # Updates self.targetPath, sefl.targetDest
         self.ViewScan(view)
-        # self.view_no_resources_seen(view)
+        # self.view_resources_seen(view)
 
 
         
@@ -133,6 +158,8 @@ class player_robot(Robot):
         # Congrats! You have found a resource
         elif(self.targetPath == []):
             self.targetPath = None
+            self.history.append(((self.x, self.y), 1))
+            del self.history[0]
             return (Actions.MINE, Actions.DROP_NONE)
         else:
             # Use the first coordinate on the path as the destination , and action to move
@@ -146,6 +173,8 @@ class player_robot(Robot):
         dx, dy = self.xy_from_dir(actionToTake)
         self.x += dx
         self.y += dy
+        self.history.append(((self.x, self.y), 0))
+        del self.history[0]
         return (actionToTake, markerDrop)
 
     # Returns opposite direction
@@ -215,8 +244,8 @@ class player_robot(Robot):
         found = False
         for i in range(0, len(view)):
             for j in range(0, len(view)):
-                if view[i][j][0].GetType() == TileType.Resource:
-                    found = True
+                if view[i][j][0].GetType() == TileType.Marker:
+                    print(view[i][j][1].GetTurns())
         return found
 
     # Picks a random move based on the view - don't crash into mountains!
@@ -230,7 +259,11 @@ class player_robot(Robot):
                   Actions.MOVE_NW,Actions.MOVE_NE,
                   Actions.MOVE_SW,Actions.MOVE_SE]
         random.shuffle(actions)
-        actions.insert(0, self.preferred_dir)
+
+        if random.random() < 0.25:
+            actions.insert(0, random.choice(actions))
+        else:
+            actions.insert(0, self.preferred_dir)
 
         for actionToTake in actions:
             
