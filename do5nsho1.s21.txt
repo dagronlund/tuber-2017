@@ -1,0 +1,16 @@
+﻿Give robot preferred direction
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+# Your branch is up-to-date with 'origin/master'.
+#
+# Changes to be committed:
+#	modified:   15097-s17/PlayerRobot.py
+#	new file:   15097-s17/map.txt
+#	new file:   15097-s17/run.bat
+#	new file:   15097-s17/visual/map.txt
+#
+# Untracked files:
+#	et4jfqqa.l0s.txt
+#
+

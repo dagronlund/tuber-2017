@@ -1,6 +1,7 @@
 from robot import Robot
 from constants import Actions, TileType
 import random
+from math import *
 import time
 
 ##########################################################################
@@ -20,6 +21,7 @@ import time
 
 # !!!!! Make your changes within here !!!!!
 class player_robot(Robot):
+
     def __init__(self, args):
         super(self.__class__, self).__init__(args)
         ##############################################
@@ -32,10 +34,28 @@ class player_robot(Robot):
         self.goinghome = False;      
         self.targetPath = None
         self.targetDest = (0,0)
-        self.preferred_dir = random.choice([Actions.MOVE_E,Actions.MOVE_N,
-                                          Actions.MOVE_S,Actions.MOVE_W,
-                                          Actions.MOVE_NW,Actions.MOVE_NE,
-                                          Actions.MOVE_SW,Actions.MOVE_SE])
+        self.preferred_dir = None
+
+        # self.angle = random.random() * pi / 2.0
+        # self.x_prob = ((pi / 2.0) - angle) / (pi / 2.0)
+        # self.y_prob = angle / (pi / 2.0)
+
+
+        # self.preferred_dir = random.choice([Actions.MOVE_E,Actions.MOVE_N,
+        #                   Actions.MOVE_S,Actions.MOVE_W,
+        #                   Actions.MOVE_NW,Actions.MOVE_NE,
+        #                   Actions.MOVE_SW,Actions.MOVE_SE])
+
+        # def weighted_choice(choices):
+        # total = sum(w for c, w in choices)
+        # r = random.uniform(0, total)
+        # upto = 0
+        # for c, w in choices:
+        #   if upto + w >= r:
+        #      return c
+        #   upto += w
+        # assert False, "Shouldn't get here"
+
 
     # A couple of helper functions (Implemented at the bottom)
     def OppositeDir(self, direction):
@@ -58,11 +78,20 @@ class player_robot(Robot):
     ###########################################################################################
     def get_move(self, view):
 
+        if self.preferred_dir is None:
+            self.preferred_dir = random.choice([Actions.MOVE_E,Actions.MOVE_N,
+                          Actions.MOVE_S,Actions.MOVE_W,
+                          Actions.MOVE_NW,Actions.MOVE_NE,
+                          Actions.MOVE_SW,Actions.MOVE_SE])
+            # print('Preferred dir', self.preferred_dir)
+            
+        # print(self.held_value())
         # Returns home if you have one resource
-        if (self.held_value() > 0):
-            self.goinghome = True
+        # if (self.held_value() > 0):
+        #     self.goinghome = True
         if(self.storage_remaining() == 0):
             self.goinghome = True
+            # print("Going Home", self.storage_remaining(), self.held_value())
 
         # How to navigate back home
         if(self.goinghome):
@@ -83,6 +112,9 @@ class player_robot(Robot):
         # Search for resources
         # Updates self.targetPath, sefl.targetDest
         self.ViewScan(view)
+        # self.view_no_resources_seen(view)
+
+        # If 
         
         # If you can't find any resources...go in a random direction!
         actionToTake = None
@@ -98,7 +130,9 @@ class player_robot(Robot):
             actionToTake = self.UpdateTargetPath()
         self.toHome.append(actionToTake)
         # markerDrop = random.choice([Actions.DROP_RED,Actions.DROP_YELLOW,Actions.DROP_GREEN,Actions.DROP_BLUE,Actions.DROP_ORANGE])
-        markerDrop = Actions.DROP_RED
+        markerDrop = Actions.DROP_NONE
+        # if not self.view_resources_seen(view):
+        #     markerDrop = Actions.DROP_RED
         assert(isinstance(actionToTake, int))
         return (actionToTake, markerDrop)
 
@@ -159,20 +193,35 @@ class player_robot(Robot):
 
         return
 
-    def view_no_resources_seen(self, view):
-        return
+    def view_resources_seen(self, view):
+        # First index is the resource
+        # 
+        # if view[len(view)//2][len(view)//2][0].GetType() == TileType.Resource:
+        #     print(view[len(view)//2][len(view)//2][0].AmountRemaining())
+        #     print(self.get_max_capacity(), self.get_pickup_amount(), self.storage_remaining())
+
+        found = False
+        for i in range(0, len(view)):
+            for j in range(0, len(view)):
+                if view[i][j][0].GetType() == TileType.Resource:
+                    found = True
+        return found
 
     # Picks a random move based on the view - don't crash into mountains!
     # REQUIRES: view (see call location)
     def FindRandomPath(self, view):
         viewLen = len(view)
 
-        while(True):
-            actionToTake = random.choice([self.preferred_dir, self.preferred_dir, self.preferred_dir, self.preferred_dir,
-                                          Actions.MOVE_E,Actions.MOVE_N,
-                                          Actions.MOVE_S,Actions.MOVE_W,
-                                          Actions.MOVE_NW,Actions.MOVE_NE,
-                                          Actions.MOVE_SW,Actions.MOVE_SE])
+        # actionToTake = self.preferred_dir
+        actions = [Actions.MOVE_E,Actions.MOVE_N,
+                  Actions.MOVE_S,Actions.MOVE_W,
+                  Actions.MOVE_NW,Actions.MOVE_NE,
+                  Actions.MOVE_SW,Actions.MOVE_SE]
+        random.shuffle(actions)
+        actions.insert(0, self.preferred_dir)
+
+        for actionToTake in actions:
+            
             if ((actionToTake == Actions.MOVE_N and view[viewLen//2-1][viewLen//2][0].CanMove()) or
                (actionToTake == Actions.MOVE_S and view[viewLen//2+1][viewLen//2][0].CanMove()) or
                (actionToTake == Actions.MOVE_E and view[viewLen//2][viewLen//2+1][0].CanMove()) or
@@ -182,6 +231,11 @@ class player_robot(Robot):
                (actionToTake == Actions.MOVE_SW and view[viewLen//2+1][viewLen//2-1][0].CanMove()) or
                (actionToTake == Actions.MOVE_SE and view[viewLen//2+1][viewLen//2+1][0].CanMove()) ):
                return actionToTake
+
+            # actionToTake = random.choice([Actions.MOVE_E,Actions.MOVE_N,
+            #                               Actions.MOVE_S,Actions.MOVE_W,
+            #                               Actions.MOVE_NW,Actions.MOVE_NE,
+            #                               Actions.MOVE_SW,Actions.MOVE_SE])
 
         return None
 
